@@ -20,7 +20,7 @@ function buildPacks() {
     packFiles.map((file) => {
       const doc = fs.readJSONSync(path.join(PACK_SRC, folder, file));
       db.insert(doc, (err, rtn) => {
-        if (err){
+        if (err) {
           console.log(`Error inserting ${doc._id}:\n${err}`);
           process.exit(1);
         };
@@ -34,4 +34,21 @@ function buildPacks() {
   * Main
   */
 
-buildPacks();
+// buildPacks();
+
+import PackGroup from "./lib/packgroup.js";
+const srcPacks = new PackGroup("./src/packs");
+
+srcPacks.packs.map((pack) => {
+  console.log(`Processing: ${pack}`);
+  var db = new Datastore({filename: `${path.join(PACK_REL, pack.name)}.db`, autoload: true});
+  pack.documents.map((document) => {
+    db.insert(document.json, (err, rtn) => {
+      if (err) {
+        console.log(`Error inserting ${document.json._id}:\n${err}`);
+        process.exit(1);
+      };
+    });
+  });
+  db.persistence.compactDatafile();
+});
